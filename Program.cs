@@ -2,11 +2,22 @@
 using DiscordRPC.Logging;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text.Json;
+using System.IO;
+using System.Text.Json.Serialization;
 
-const string DISCORD_APP_ID = "1518850863878115378";
+// Get kavita url and application id from json file
+string configRaw = File.ReadAllText("config.json");
+var config = JsonSerializer.Deserialize<Config>(configRaw);
+string applicationId = config.DiscordApplicationId;
+string kavitaUrl = config.KavitaUrl;
 
+HttpClient sharedClient = new()
+{
+    BaseAddress = new Uri(kavitaUrl),
+};
 // Create the client
-var client = new DiscordRpcClient(DISCORD_APP_ID)
+var client = new DiscordRpcClient(applicationId)
 {
     Logger = new ConsoleLogger(LogLevel.Info, true)
 };
@@ -42,3 +53,8 @@ Console.ReadKey();
 
 // Important: cleans up and clears the presence on exit
 client.Dispose();
+
+record Config(
+    [property: JsonPropertyName("discord_application_id")] string DiscordApplicationId,
+    [property: JsonPropertyName("kavita_url")] string KavitaUrl
+);
