@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.IO;
 using System.Text.Json.Serialization;
 using System.Diagnostics;
+using ImageMagick;
 
 // Define resultUrl string
 string resultUrl = "";
@@ -45,6 +46,19 @@ async Task UploadToLitterbox(string fileUrl)
     var fileBytes = await httpClient.GetByteArrayAsync(fileUrl);
     Console.WriteLine($"Download complete");
 
+    // Add transparent 1:1 padding to image to avoid discord squaring it
+    using (var image = new MagickImage(fileBytes))
+    {
+        Console.WriteLine("Converting image...");
+        int height = (int)image.Height;
+        image.BackgroundColor = MagickColors.Transparent;
+        image.Extent((uint)height, (uint)height, Gravity.Center);
+        image.Resize(500, 500);
+        image.Format = MagickFormat.WebP;
+        fileBytes = image.ToByteArray();
+        Console.WriteLine("Image converted.");
+    }
+
     // Step 2: build the multipart form
     using var form = new MultipartFormDataContent();
     form.Add(new StringContent("12h"), "time");
@@ -83,7 +97,6 @@ async Task UpdateRPC(RpcState state)
     }
     if (myActivity != null)
     {
-        Console.WriteLine($"LargeImageKey = '{resultUrl}' (length: {resultUrl.Length})");
         client.SetPresence(new RichPresence()
         {
             Details = myActivity.SeriesName,
@@ -120,13 +133,12 @@ authResponse.EnsureSuccessStatusCode();
 var auth = await authResponse.Content.ReadFromJsonAsync<AuthKeyResponse>();
 HttpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", auth!.Token);
 
+// Actual program
 var state = new RpcState();
 while (true) {
     await UpdateRPC(state);
     await Task.Delay(config.UpdateInterval);
 }
-// Important: cleans up and clears the presence on exit
-// client.Dispose();
 
 record Config(
     [property: JsonPropertyName("discord_application_id")] string DiscordApplicationId,
