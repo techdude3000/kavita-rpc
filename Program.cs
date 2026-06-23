@@ -110,7 +110,7 @@ async Task UpdateRPC(RpcState state)
         client.SetPresence(new RichPresence()
         {
             Details = $"Reading: {myActivity.SeriesName}",
-            State = $"Volume: {getVolumeInfo.VolumeNumber}, Page {myActivity.PagesRead + myActivity.StartPage + 1} / {myActivity.TotalPages}",
+            State = $"Volume {getVolumeInfo.VolumeNumber}, Page {myActivity.PagesRead + myActivity.StartPage + 1} / {myActivity.TotalPages}",
             StatusDisplay = StatusDisplayType.Name,
             Assets = new Assets()
             {
