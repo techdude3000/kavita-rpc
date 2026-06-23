@@ -6,18 +6,27 @@ using System.Text.Json;
 using System.IO;
 using System.Text.Json.Serialization;
 
-// Get kavita url and application id from json file
+// Get config from json file
 string configRaw = File.ReadAllText("config.json");
 var config = JsonSerializer.Deserialize<Config>(configRaw);
-string applicationId = config.DiscordApplicationId;
-string kavitaUrl = config.KavitaUrl;
 
-HttpClient sharedClient = new()
+// Choose base url
+using var HttpClient = new HttpClient 
 {
-    BaseAddress = new Uri(kavitaUrl),
+    BaseAddress = new Uri(config.KavitaUrl) 
 };
+
+// Authenticate with Kavita API
+var authResponse = await HttpClient.PostAsync(
+    $"/api/Plugin/authenticate?apiKey={config.KavitaApiKey}&pluginName=kavita-rpc",
+    null
+);
+authResponse.EnsureSuccessStatusCode();
+var auth = await authResponse.Content.ReadFromJsonAsync<AuthKeyResponse>();
+HttpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", auth!.Token);
+
 // Create the client
-var client = new DiscordRpcClient(applicationId)
+var client = new DiscordRpcClient(config.DiscordApplicationId)
 {
     Logger = new ConsoleLogger(LogLevel.Info, true)
 };
@@ -56,5 +65,9 @@ client.Dispose();
 
 record Config(
     [property: JsonPropertyName("discord_application_id")] string DiscordApplicationId,
-    [property: JsonPropertyName("kavita_url")] string KavitaUrl
+    [property: JsonPropertyName("kavita_url")] string KavitaUrl,
+    [property: JsonPropertyName("kavita_api_key")] string KavitaApiKey
+);
+record AuthKeyResponse(
+    [property: JsonPropertyName("token")] string Token
 );

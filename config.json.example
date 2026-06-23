@@ -1,4 +1,5 @@
 {
     "discord_application_id": "1518850863878115378",
-    "kavita_url": "https://your-kavita-url.com"
+    "kavita_url": "https://your-kavita-url.com",
+    "kavita_api_key": "YOUR_API_KEY_HERE"
 }
