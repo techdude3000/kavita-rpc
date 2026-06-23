@@ -37,6 +37,15 @@ async Task<List<CurrentActivity>> GetCurrentActivity()
     return sessions;
 }
 
+// Method to get volume info
+async Task<VolumeInfo> GetVolumeInfo(int VolumeId)
+{
+    var volumeInfo = await HttpClient.GetAsync($"/api/Series/volume?volumeId={VolumeId}");
+    volumeInfo.EnsureSuccessStatusCode();
+    var sessions = await volumeInfo.Content.ReadFromJsonAsync<VolumeInfo>();
+    return sessions;
+}
+
 // Method to upload a file (image) to litterbox (file hoster)
 async Task UploadToLitterbox(string fileUrl)
 {
@@ -89,6 +98,7 @@ async Task UpdateRPC(RpcState state)
     {
         return;
     }
+    var getVolumeInfo = await GetVolumeInfo(myActivity.VolumeId);
     if (myActivity.ChapterId != state.LastChapterId)
     {
         string fileUrl = $"{config.KavitaUrl}/api/image/chapter-cover?chapterId={myActivity.ChapterId}&apiKey={config.KavitaApiKey}.webp";
@@ -99,8 +109,9 @@ async Task UpdateRPC(RpcState state)
     {
         client.SetPresence(new RichPresence()
         {
-            Details = myActivity.SeriesName,
-            State = $"Page {myActivity.PagesRead + myActivity.StartPage + 1}/{myActivity.TotalPages}",
+            Details = $"Reading: {myActivity.SeriesName}",
+            State = $"Volume: {getVolumeInfo.VolumeNumber}, Page {myActivity.PagesRead + myActivity.StartPage + 1} / {myActivity.TotalPages}",
+            StatusDisplay = StatusDisplayType.Name,
             Assets = new Assets()
             {
                 LargeImageKey = resultUrl,
@@ -140,6 +151,7 @@ while (true) {
     await Task.Delay(config.UpdateInterval);
 }
 
+// Records
 record Config(
     [property: JsonPropertyName("discord_application_id")] string DiscordApplicationId,
     [property: JsonPropertyName("kavita_url")] string KavitaUrl,
@@ -162,6 +174,9 @@ record CurrentActivity(
     [property: JsonPropertyName("isActive")] bool IsActive,
     [property: JsonPropertyName("userId")] int UserId,
     [property: JsonPropertyName("activityData")] List<ActivityData> ActivityData
+);
+record VolumeInfo(
+    [property: JsonPropertyName("name")] string VolumeNumber
 );
 class RpcState
 {
