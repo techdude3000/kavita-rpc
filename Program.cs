@@ -105,10 +105,9 @@ async Task<string> UploadToLitterbox(int? ChapterId, int? VolumeId)
 async Task UpdateRPC(RpcState state)
 {
     var sessions = await GetCurrentActivity();
-    var myActivity = sessions?
-        .SelectMany(s => s.ActivityData)
-        .FirstOrDefault();
-    if (myActivity == null)
+    var session = sessions?.FirstOrDefault(s => s.ActivityData.Count > 0);
+    var myActivity = session?.ActivityData.FirstOrDefault();
+    if (myActivity == null || session == null)
     {
         return;
     }
@@ -143,7 +142,7 @@ async Task UpdateRPC(RpcState state)
         }
         else
         {
-            state.CurrentVolume = $"Volume {volumeInfo.VolumeNumber:F1}, ";
+            state.CurrentVolume = $"Volume {volumeInfo.VolumeNumber}, ";
         }
         state.LastChapterId = myActivity.ChapterId;
         state.LastVolumeId = myActivity.VolumeId;
@@ -154,6 +153,7 @@ async Task UpdateRPC(RpcState state)
         {
             Details = $"Reading: {myActivity.SeriesName}",
             State = $"{state.CurrentVolume}{state.CurrentChapter}Page {myActivity.PagesRead + myActivity.StartPage + 1} / {myActivity.TotalPages}",
+            Timestamps = new Timestamps(session.StartTimeUtc),
             StatusDisplay = StatusDisplayType.Name,
             Assets = new Assets()
             {
@@ -217,6 +217,7 @@ record ActivityData(
 record CurrentActivity(
     [property: JsonPropertyName("isActive")] bool IsActive,
     [property: JsonPropertyName("userId")] int UserId,
+    [property: JsonPropertyName("startTimeUtc")] DateTime StartTimeUtc,
     [property: JsonPropertyName("activityData")] List<ActivityData> ActivityData
 );
 record VolumeInfo(
