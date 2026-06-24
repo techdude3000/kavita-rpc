@@ -8,9 +8,6 @@ using System.Text.Json.Serialization;
 using System.Diagnostics;
 using ImageMagick;
 
-// Define resultUrl string
-string resultUrl = "";
-
 // Get config from json file
 string configRaw = File.ReadAllText("config.json");
 var config = JsonSerializer.Deserialize<Config>(configRaw);
@@ -47,12 +44,11 @@ async Task<VolumeInfo> GetVolumeInfo(int VolumeId)
 }
 
 // Method to upload a file (image) to litterbox (file hoster)
-async Task UploadToLitterbox(string fileUrl)
+async Task<string> UploadToLitterbox(string fileUrl)
 {
-    using var httpClient = new HttpClient();
     // Step 1: download the file from the link
     Console.WriteLine($"Downloading from {fileUrl}");
-    var fileBytes = await httpClient.GetByteArrayAsync(fileUrl);
+    var fileBytes = await HttpClient.GetByteArrayAsync(fileUrl);
     Console.WriteLine($"Download complete");
 
     // Add transparent 1:1 padding to image to avoid discord squaring it
@@ -78,13 +74,14 @@ async Task UploadToLitterbox(string fileUrl)
 
     // Step 3: upload to litterbox
     Console.WriteLine("Uploading image to litterbox...");
-    var response = await httpClient.PostAsync(
+    var response = await HttpClient.PostAsync(
         "https://litterbox.catbox.moe/resources/internals/api.php",
         form
     );
     response.EnsureSuccessStatusCode();
-    resultUrl = await response.Content.ReadAsStringAsync();
+    string resultUrl = await response.Content.ReadAsStringAsync();
     Console.WriteLine($"Upload complete (URL: {resultUrl})");
+    return resultUrl;
 }
 
 // Method to update RPC
@@ -102,7 +99,7 @@ async Task UpdateRPC(RpcState state)
     if (myActivity.ChapterId != state.LastChapterId)
     {
         string fileUrl = $"{config.KavitaUrl}/api/image/chapter-cover?chapterId={myActivity.ChapterId}&apiKey={config.KavitaApiKey}.webp";
-        await UploadToLitterbox(fileUrl);
+        state.CurrentImageUrl = await UploadToLitterbox(fileUrl);
         state.LastChapterId = myActivity.ChapterId;
     }
     if (myActivity != null)
@@ -114,7 +111,7 @@ async Task UpdateRPC(RpcState state)
             StatusDisplay = StatusDisplayType.Name,
             Assets = new Assets()
             {
-                LargeImageKey = resultUrl,
+                LargeImageKey = state.CurrentImageUrl,
             },
         });
     }
@@ -181,4 +178,5 @@ record VolumeInfo(
 class RpcState
 {
     public int LastChapterId;
+    public string CurrentImageUrl;
 }
