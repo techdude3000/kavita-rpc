@@ -21,7 +21,7 @@ using var HttpClient = new HttpClient
 // Create the RPC client
 var client = new DiscordRpcClient(config.DiscordApplicationId)
 {
-    Logger = new ConsoleLogger(LogLevel.Warning, true)
+    Logger = new ConsoleLogger(LogLevel.Info, true)
 };
 
 
@@ -40,6 +40,15 @@ async Task<VolumeInfo> GetVolumeInfo(int VolumeId)
     var volumeInfo = await HttpClient.GetAsync($"/api/Series/volume?volumeId={VolumeId}");
     volumeInfo.EnsureSuccessStatusCode();
     var sessions = await volumeInfo.Content.ReadFromJsonAsync<VolumeInfo>();
+    return sessions;
+}
+
+// Method to get chapter info
+async Task<ChapterInfo> GetChapterInfo(int ChapterId)
+{
+    var volumeInfo = await HttpClient.GetAsync($"/api/Series/chapter?chapterId={ChapterId}");
+    volumeInfo.EnsureSuccessStatusCode();
+    var sessions = await volumeInfo.Content.ReadFromJsonAsync<ChapterInfo>();
     return sessions;
 }
 
@@ -107,6 +116,7 @@ async Task UpdateRPC(RpcState state)
     if (myActivity.ChapterId != state.LastChapterId)
     {
         var volumeInfo = await GetVolumeInfo(myActivity.VolumeId);
+        var chapterInfo = await GetChapterInfo(myActivity.ChapterId);
         // If user wants to show chapter images instead of volume images
         if (config.UseChapterImage)
         {
@@ -116,7 +126,25 @@ async Task UpdateRPC(RpcState state)
         {
             state.CurrentImageUrl = await UploadToLitterbox(null, myActivity.VolumeId);
         }
-        state.CurrentVolumeNumber = volumeInfo.VolumeNumber;
+        // If chapter number is negative, dont show current chapter
+        if (chapterInfo.ChapterNumber < 0)
+        {
+             state.CurrentChapter = "";
+        }
+        else
+        {
+            state.CurrentChapter = $"Chapter {chapterInfo.ChapterNumber:F1}, ";
+        }
+    
+        // Same thing with volume number
+        if (volumeInfo.VolumeNumber < 0)
+        {
+             state.CurrentVolume = "";
+        }
+        else
+        {
+            state.CurrentVolume = $"Volume {volumeInfo.VolumeNumber:F1}, ";
+        }
         state.LastChapterId = myActivity.ChapterId;
         state.LastVolumeId = myActivity.VolumeId;
     }
@@ -125,7 +153,7 @@ async Task UpdateRPC(RpcState state)
         client.SetPresence(new RichPresence()
         {
             Details = $"Reading: {myActivity.SeriesName}",
-            State = $"Volume {state.CurrentVolumeNumber}, Page {myActivity.PagesRead + myActivity.StartPage + 1} / {myActivity.TotalPages}",
+            State = $"{state.CurrentVolume}{state.CurrentChapter}Page {myActivity.PagesRead + myActivity.StartPage + 1} / {myActivity.TotalPages}",
             StatusDisplay = StatusDisplayType.Name,
             Assets = new Assets()
             {
@@ -192,12 +220,16 @@ record CurrentActivity(
     [property: JsonPropertyName("activityData")] List<ActivityData> ActivityData
 );
 record VolumeInfo(
-    [property: JsonPropertyName("name")] string VolumeNumber
+    [property: JsonPropertyName("name")] float VolumeNumber
+);
+record ChapterInfo(
+    [property: JsonPropertyName("title")] float ChapterNumber
 );
 class RpcState
 {
     public int LastChapterId;
     public int LastVolumeId;
     public string CurrentImageUrl;
-    public string CurrentVolumeNumber;
+    public string CurrentVolume;
+    public string CurrentChapter;
 }
