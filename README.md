@@ -16,6 +16,8 @@ Beta — many things not finished / unstable
 6. Optional — If you want to display chapter cover images instead of volume cover images, set `use_chapter_image` to true
 
 ### Notes:
+Kavita's API seems to always be 1 page behind (so I have added +1 to the page count). The API being behind can lead to some odd things, like when being on page 1 of a chapter/volume, it might display that you are on page e.g. 15 / 14 on the previous chapter/volume\
+\
 Uses [Magik.NET](https://github.com/dlemstra/Magick.NET) and [discord-rpc-csharp](https://github.com/Lachee/discord-rpc-csharp)\
 \
 Project was not vibecoded but did have some ai assistance.

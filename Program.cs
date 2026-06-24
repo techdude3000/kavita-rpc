@@ -132,7 +132,7 @@ async Task UpdateRPC(RpcState state)
         }
         else
         {
-            state.CurrentChapter = $"Chapter {chapterInfo.ChapterNumber:F1}, ";
+            state.CurrentChapter = $"Chapter {chapterInfo.ChapterNumber}, ";
         }
     
         // Same thing with volume number
