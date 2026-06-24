@@ -10,6 +10,6 @@
 ## Edit config
 1. Rename the example config: `mv config.example.json config.json`
 2. Edit the config: `nano config.json`
-3. Change the kavita_url field to your kavita url
-4. Change the kavita_api_key field to your kavita API key (found at Settings --> Account --> Auth Keys / OPDS)
-5. Optional — Change the update_interval (miliseconds)
+3. Change the `kavita_url` field to your kavita url
+4. Change the `kavita_api_key` field to your kavita API key (found at Settings --> Account --> Auth Keys / OPDS)
+5. Optional — Change the `update_interval` (measured in miliseconds)
