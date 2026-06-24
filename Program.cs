@@ -44,11 +44,19 @@ async Task<VolumeInfo> GetVolumeInfo(int VolumeId)
 }
 
 // Method to upload a file (image) to litterbox (file hoster)
-async Task<string> UploadToLitterbox(string fileUrl)
+async Task<string> UploadToLitterbox(int? ChapterId, int? VolumeId)
 {
     // Step 1: download the file from the link
-    Console.WriteLine($"Downloading from {fileUrl}");
-    var fileBytes = await HttpClient.GetByteArrayAsync(fileUrl);
+    Console.WriteLine($"Downloading image");
+    byte[] fileBytes;
+    if (ChapterId.HasValue)
+    {
+        fileBytes = await HttpClient.GetByteArrayAsync($"/api/image/chapter-cover?chapterId={ChapterId}&apiKey={config.KavitaApiKey}.webp");
+    }
+    else
+    {
+        fileBytes = await HttpClient.GetByteArrayAsync($"/api/image/volume-cover?volumeId={VolumeId}&apiKey={config.KavitaApiKey}.webp");
+    }
     Console.WriteLine($"Download complete");
 
     // Add transparent 1:1 padding to image to avoid discord squaring it
@@ -70,7 +78,7 @@ async Task<string> UploadToLitterbox(string fileUrl)
     form.Add(new StringContent("fileupload"), "reqtype");
 
     var fileContent = new ByteArrayContent(fileBytes);
-    form.Add(fileContent, "fileToUpload", Path.GetFileName(fileUrl));
+    form.Add(fileContent, "fileToUpload", "cover.webp");
 
     // Step 3: upload to litterbox
     Console.WriteLine("Uploading image to litterbox...");
@@ -95,19 +103,29 @@ async Task UpdateRPC(RpcState state)
     {
         return;
     }
-    var getVolumeInfo = await GetVolumeInfo(myActivity.VolumeId);
+    // If the chapter id is different from last time, get new image
     if (myActivity.ChapterId != state.LastChapterId)
     {
-        string fileUrl = $"{config.KavitaUrl}/api/image/chapter-cover?chapterId={myActivity.ChapterId}&apiKey={config.KavitaApiKey}.webp";
-        state.CurrentImageUrl = await UploadToLitterbox(fileUrl);
+        var volumeInfo = await GetVolumeInfo(myActivity.VolumeId);
+        // If user wants to show chapter images instead of volume images
+        if (config.UseChapterImage)
+        {
+            state.CurrentImageUrl = await UploadToLitterbox(myActivity.ChapterId, null);
+        }
+        else if (myActivity.VolumeId != state.LastVolumeId)
+        {
+            state.CurrentImageUrl = await UploadToLitterbox(null, myActivity.VolumeId);
+        }
+        state.CurrentVolumeNumber = volumeInfo.VolumeNumber;
         state.LastChapterId = myActivity.ChapterId;
+        state.LastVolumeId = myActivity.VolumeId;
     }
     if (myActivity != null)
     {
         client.SetPresence(new RichPresence()
         {
             Details = $"Reading: {myActivity.SeriesName}",
-            State = $"Volume {getVolumeInfo.VolumeNumber}, Page {myActivity.PagesRead + myActivity.StartPage + 1} / {myActivity.TotalPages}",
+            State = $"Volume {state.CurrentVolumeNumber}, Page {myActivity.PagesRead + myActivity.StartPage + 1} / {myActivity.TotalPages}",
             StatusDisplay = StatusDisplayType.Name,
             Assets = new Assets()
             {
@@ -153,7 +171,8 @@ record Config(
     [property: JsonPropertyName("discord_application_id")] string DiscordApplicationId,
     [property: JsonPropertyName("kavita_url")] string KavitaUrl,
     [property: JsonPropertyName("kavita_api_key")] string KavitaApiKey,
-    [property: JsonPropertyName("update_interval")] int UpdateInterval
+    [property: JsonPropertyName("update_interval")] int UpdateInterval,
+    [property: JsonPropertyName("use_chapter_image")] bool UseChapterImage
 );
 record AuthKeyResponse(
     [property: JsonPropertyName("token")] string Token
@@ -178,5 +197,7 @@ record VolumeInfo(
 class RpcState
 {
     public int LastChapterId;
+    public int LastVolumeId;
     public string CurrentImageUrl;
+    public string CurrentVolumeNumber;
 }

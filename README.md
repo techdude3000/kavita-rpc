@@ -13,3 +13,4 @@ Beta
 3. Change the `kavita_url` field to your kavita url
 4. Change the `kavita_api_key` field to your kavita API key (found at Settings --> Account --> Auth Keys / OPDS)
 5. Optional — Change the `update_interval` (measured in miliseconds)
+6. Optional — If you want to display chapter cover images instead of volume cover images, set `use_chapter_image` to true
