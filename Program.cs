@@ -24,7 +24,6 @@ var client = new DiscordRpcClient(config.DiscordApplicationId)
     Logger = new ConsoleLogger(LogLevel.Info, true)
 };
 
-
 // Method to get current activity
 async Task<List<CurrentActivity>> GetCurrentActivity()
 {
@@ -109,6 +108,7 @@ async Task UpdateRPC(RpcState state)
     var myActivity = session?.ActivityData.FirstOrDefault();
     if (myActivity == null || session == null)
     {
+        client.ClearPresence();
         return;
     }
     // If the chapter id is different from last time, get new image
@@ -159,6 +159,7 @@ async Task UpdateRPC(RpcState state)
         state.LastChapterId = myActivity.ChapterId;
         state.LastVolumeId = myActivity.VolumeId;
     }
+    // Set the rpc
     if (myActivity != null)
     {
         client.SetPresence(new RichPresence()
@@ -187,7 +188,7 @@ client.OnPresenceUpdate += (sender, e) =>
     Console.WriteLine("Presence updated: {0}", e.Presence);
 };
 
-// Connects to the Discord IPC pipe
+// Connect to the Discord IPC pipe
 client.Initialize();
 
 // Authenticate with Kavita API
