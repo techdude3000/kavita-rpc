@@ -125,6 +125,7 @@ async Task UpdateRPC(RpcState state)
         {
             state.CurrentImageUrl = await UploadToLitterbox(null, myActivity.VolumeId);
         }
+
         // If chapter number is negative, dont show current chapter
         if (chapterInfo.ChapterNumber < 0)
         {
@@ -144,6 +145,17 @@ async Task UpdateRPC(RpcState state)
         {
             state.CurrentVolume = $"Volume {volumeInfo.VolumeNumber}, ";
         }
+
+        // If user wants to add to page number
+        if (config.AddToPageNumber)
+        {
+            state.PageNumber = $"Page {myActivity.PagesRead + myActivity.StartPage + 1} / {myActivity.TotalPages}";
+        }
+        else
+        {
+            state.PageNumber = $"Page {myActivity.PagesRead + myActivity.StartPage} / {myActivity.TotalPages}";
+        }
+
         state.LastChapterId = myActivity.ChapterId;
         state.LastVolumeId = myActivity.VolumeId;
     }
@@ -152,7 +164,7 @@ async Task UpdateRPC(RpcState state)
         client.SetPresence(new RichPresence()
         {
             Details = $"Reading: {myActivity.SeriesName}",
-            State = $"{state.CurrentVolume}{state.CurrentChapter}Page {myActivity.PagesRead + myActivity.StartPage + 1} / {myActivity.TotalPages}",
+            State = $"{state.CurrentVolume}{state.CurrentChapter}{state.PageNumber}",
             Timestamps = new Timestamps(session.StartTimeUtc),
             StatusDisplay = StatusDisplayType.Name,
             Assets = new Assets()
@@ -200,7 +212,8 @@ record Config(
     [property: JsonPropertyName("kavita_url")] string KavitaUrl,
     [property: JsonPropertyName("kavita_api_key")] string KavitaApiKey,
     [property: JsonPropertyName("update_interval")] int UpdateInterval,
-    [property: JsonPropertyName("use_chapter_image")] bool UseChapterImage
+    [property: JsonPropertyName("use_chapter_image")] bool UseChapterImage,
+    [property: JsonPropertyName("add_to_page_number")] bool AddToPageNumber
 );
 record AuthKeyResponse(
     [property: JsonPropertyName("token")] string Token
@@ -233,4 +246,5 @@ class RpcState
     public string CurrentImageUrl;
     public string CurrentVolume;
     public string CurrentChapter;
+    public string PageNumber;
 }

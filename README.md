@@ -14,9 +14,10 @@ Beta — many things not finished / unstable
 4. Change the `kavita_api_key` field to your kavita API key (found at Settings --> Account --> Auth Keys / OPDS)
 5. Optional — Change the `update_interval` (measured in miliseconds)
 6. Optional — If you want to display chapter cover images instead of volume cover images, set `use_chapter_image` to true
+7. Optional — If you want to add +1 to the page number (see why you might want to below), set `add_to_page_number` to true
 
 ### Notes:
-Kavita's API seems to always be 1 page behind (so I have added +1 to the page count). The API being behind can lead to some odd things, like when being on page 1 of a chapter/volume, it might display that you are on page e.g. 15 / 14 on the previous chapter/volume\
+Kavita's API seems to always be 1 page behind. The API being behind can lead to some odd things, like when being on page 1 of a chapter/volume, it might display that you are on page e.g. 14 / 14 on the previous chapter/volume.\
 \
 Uses [Magik.NET](https://github.com/dlemstra/Magick.NET) and [discord-rpc-csharp](https://github.com/Lachee/discord-rpc-csharp)\
 \
