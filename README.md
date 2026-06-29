@@ -1,7 +1,10 @@
 # kavita-rpc
-Beta — many things not finished / unstable\
-<img width="579" height="230" alt="example" src="https://github.com/user-attachments/assets/c83057b2-9baa-4fb9-ab52-fda63b2378f2" />\
-Untested on Windows
+Beta — many things not finished / unstable
+### Features:
+Displays the title, image, current page, volume number (if there is one) and chapter number (if there is one).\
+Processes images to avoid discord cropping them.\
+\
+<img width="579" height="230" alt="example" src="https://github.com/user-attachments/assets/c83057b2-9baa-4fb9-ab52-fda63b2378f2" />
 
 ## Build
 1. Install .NET 9.0 SDK
