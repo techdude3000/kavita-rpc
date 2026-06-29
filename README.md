@@ -1,5 +1,8 @@
 # kavita-rpc
-Beta — many things not finished / unstable
+Beta — many things not finished / unstable\
+<img width="579" height="230" alt="example" src="https://github.com/user-attachments/assets/c83057b2-9baa-4fb9-ab52-fda63b2378f2" />\
+Untested on Windows
+
 ## Build
 1. Install .NET 9.0 SDK
 2. Clone the repo: `git clone https://github.com/techdude3000/kavita-rpc`
@@ -16,9 +19,18 @@ Beta — many things not finished / unstable
 6. Optional — If you want to display chapter cover images instead of volume cover images, set `use_chapter_image` to true
 7. Optional — If you want to add +1 to the page number (see why you might want to below), set `add_to_page_number` to true
 
-### Notes:
+## Issues
 Kavita's API seems to always be 1 page behind. The API being behind can lead to some odd things, like when being on page 1 of a chapter/volume, it might display that you are on page e.g. 14 / 14 on the previous chapter/volume.\
 \
+RPC does not show until image finishes uploading to litterbox\
+\
+Program crashes when image fails to upload\
+\
+Binaries are very large (100mb)\
+\
+i am buns at coding
+
+### Notes:
 Uses [Magik.NET](https://github.com/dlemstra/Magick.NET) and [discord-rpc-csharp](https://github.com/Lachee/discord-rpc-csharp)\
 \
 Project was not vibecoded but did have some ai assistance.
