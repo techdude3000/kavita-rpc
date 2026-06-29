@@ -26,6 +26,8 @@ RPC does not show until image finishes uploading to litterbox\
 \
 Program crashes when image fails to upload\
 \
+Binaries are very large (100mb)\
+\
 i am buns at coding
 
 ### Notes:
