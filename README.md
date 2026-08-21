@@ -1,5 +1,6 @@
 # kavita-rpc
 Beta — many things not finished / unstable
+Ts is kinda buns so i might remake it in a different language
 ### Features:
 Displays the title, image, current page, volume number (if there is one) and chapter number (if there is one).\
 Processes images to avoid discord cropping them.\
